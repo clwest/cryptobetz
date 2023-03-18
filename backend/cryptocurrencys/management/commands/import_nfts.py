@@ -22,6 +22,7 @@ class Command(BaseCommand):
 
         response = requests.get(url, headers=headers, params=params)
         data = response.json()
+        print(data)
         nfts.extend(data)
 
         while len(data) == 200:
