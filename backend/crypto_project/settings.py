@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "reddit.apps.RedditConfig",
     "coingecko.apps.CoingeckoConfig",
     "cryptonews.apps.CryptonewsConfig",
-    "cryptocurrencys.apps.CryptocurrencysConfig"
 ]
 
 MIDDLEWARE = [

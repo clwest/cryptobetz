@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from cryptocurrencys.models import NFTS
+from coingecko.models import NFTS
 import requests
 from dotenv import load_dotenv
 import os
