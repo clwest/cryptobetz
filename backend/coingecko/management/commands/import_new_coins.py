@@ -10,7 +10,7 @@ coingecko = os.getenv('COINGECKO')
 
 
 class Command(BaseCommand):
-    help = 'Imports new coin data from an external API'
+    help = 'Imports new coin data from Coingecko API'
 
     def handle(self, *args, **options):
         url = 'https://pro-api.coingecko.com/api/v3/coins/list/new'
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         data = response.json()
         new_coins.extend(data)
 
-        while len(data) == params['per_page']:
+        while data:
             params['page'] += 1
             response = requests.get(url, headers=headers, params=params)
             data = response.json()
@@ -33,16 +33,18 @@ class Command(BaseCommand):
 
         print(f"Found {len(new_coins)} New Coins")
 
-        for new_coin_data in new_coins:
+        for coin in new_coins:
             try:
-                if 'status' in new_coin_data:
-                    print(f"Failed to import New Coin: {new_coin_data['status']['error_message']}")
+                if NewCoin.objects.filter(name=coin['name']).exists():
+                    print(f"Coin already exists: {coin['name']}")
                     continue
 
-                new_coin_obj = NewCoin.objects.create(
-                    name=new_coin_data['name'],
-                    symbol=new_coin_data['symbol'],
-                    coingecko_id=new_coin_data['id'],
+                new_coin_obj = NewCoin.objects.get_or_create(
+                    name=coin['name'],
+                    defaults={
+                        'symbol': coin['symbol'],
+                        'coingecko_id': coin['id'],
+                    }
                 )
             except Exception as e:
-                print(f"Failed to import New Coin: {new_coin_data}\nError: {e}")
+                print(f"Failed to import New Coin: {coin}\nError: {e}")

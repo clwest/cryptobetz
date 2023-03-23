@@ -22,7 +22,6 @@ class Command(BaseCommand):
 
         response = requests.get(url, headers=headers, params=params)
         data = response.json()
-        print(data)
         nfts.extend(data)
 
         while len(data) == 200:
@@ -35,14 +34,11 @@ class Command(BaseCommand):
         
         for nft in nfts:
             try:
-                if 'status' in nft:
-                    print(f"Failed to import NFT: {nft['status']['error_message']}")
-                    continue
+                if NFTS.objects.filter(name=nft['name']).exists():
+                    print(f"NFT already exists: {nft['name']}")
 
                 url = f'https://pro-api.coingecko.com/api/v3/nfts/{nft["id"]}'
                 response = requests.get(url, headers=headers)
-
-                print(f"API response: {response.json()}")
 
                 nft_data = response.json()
 
@@ -50,18 +46,20 @@ class Command(BaseCommand):
                     print(f"Failed to import NFT: {nft_data}")
                     continue
 
-                nft_obj = NFTS.objects.create(
-                    name=nft_data['name'],
-                    contract_address=nft_data['contract_address'],
-                    image_url=nft_data['image']['small'],
-                    asset_platform=nft_data['asset_platform_id'],
-                    native_currency=nft_data['native_currency'],
-                    description=nft_data['description'],
-                    total_supply=nft_data['total_supply'],
-                    unique_address=nft_data['number_of_unique_addresses'],
-                    market_cap=nft_data['market_cap']['usd'],
-                    volume_24h=nft_data['volume_24h']['usd'],
-                    floor_price=nft_data['floor_price']['usd'],
+                nft_obj, created = NFTS.objects.get_or_create(
+                    name= nft_data['name'],
+                    defaults={
+                    'contract_address': nft_data['contract_address'],
+                    'image_url': nft_data['image']['small'],
+                    'asset_platform': nft_data['asset_platform_id'],
+                    'native_currency': nft_data['native_currency'],
+                    'description': nft_data['description'],
+                    'total_supply': nft_data['total_supply'],
+                    'unique_address': nft_data['number_of_unique_addresses'],
+                    'market_cap': nft_data['market_cap']['usd'],
+                    'volume_24h': nft_data['volume_24h']['usd'],
+                    'floor_price': nft_data['floor_price']['usd'],
+                    }
                 )
             except Exception as e:
                 print(f"Failed to import NFT: {nft}\nError: {e}")
